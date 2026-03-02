@@ -1,0 +1,763 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Con Law Study Trainer</title>
+  <style>
+    :root {
+      --bg: #0b1020;
+      --card: rgba(255,255,255,0.08);
+      --text: rgba(255,255,255,0.92);
+      --muted: rgba(255,255,255,0.68);
+      --line: rgba(255,255,255,0.16);
+      --good: #2bd4a3;
+      --bad: #ff5a7a;
+      --accent: #7aa2ff;
+      --shadow: 0 10px 30px rgba(0,0,0,0.35);
+      --r: 18px;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+    }
+    html,body { height:100%; }
+    body {
+      margin:0; color:var(--text); font-family:var(--sans);
+      background:
+        radial-gradient(1200px 800px at 18% 10%, rgba(122,162,255,0.25), transparent 60%),
+        radial-gradient(1000px 700px at 85% 25%, rgba(43,212,163,0.18), transparent 60%),
+        radial-gradient(900px 650px at 55% 90%, rgba(255,90,122,0.14), transparent 60%),
+        linear-gradient(180deg, #070a14, var(--bg));
+    }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 22px 18px 40px; }
+    header { display:flex; align-items:flex-end; justify-content:space-between; gap:18px; margin: 6px 0 18px; }
+    .title { display:flex; flex-direction:column; gap:6px; }
+    h1 { margin:0; font-weight:750; letter-spacing:-0.02em; font-size: 28px; }
+    .sub { color:var(--muted); font-size:14px; line-height:1.35; max-width: 70ch; }
+    .controls { display:flex; flex-wrap:wrap; gap:10px; align-items:center; justify-content:flex-end; }
+    .pill { background: var(--card); border:1px solid var(--line); border-radius: 999px; padding: 9px 12px; box-shadow: var(--shadow); display:flex; gap:8px; align-items:center; }
+    select, button, input[type="text"] {
+      font: inherit;
+      background: rgba(0,0,0,0.18);
+      border: 1px solid rgba(255,255,255,0.18);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 9px 10px;
+      outline: none;
+    }
+    select:focus, button:focus, input[type="text"]:focus { border-color: rgba(122,162,255,0.6); box-shadow: 0 0 0 4px rgba(122,162,255,0.12); }
+    button { cursor:pointer; background: linear-gradient(180deg, rgba(122,162,255,0.35), rgba(122,162,255,0.18)); border-color: rgba(122,162,255,0.5); }
+    button.secondary { background: rgba(0,0,0,0.18); border-color: rgba(255,255,255,0.18); }
+    button.danger { background: linear-gradient(180deg, rgba(255,90,122,0.33), rgba(255,90,122,0.15)); border-color: rgba(255,90,122,0.55); }
+    .grid { display:grid; grid-template-columns: 1.2fr 0.8fr; gap: 14px; align-items:start; }
+    @media (max-width: 900px) { .grid { grid-template-columns: 1fr; } header { align-items:flex-start; flex-direction:column; } .controls { justify-content:flex-start; } }
+    .card { background: var(--card); border: 1px solid var(--line); border-radius: var(--r); box-shadow: var(--shadow); overflow:hidden; }
+    .card .hd { padding: 14px 14px 12px; border-bottom: 1px solid var(--line); display:flex; align-items:center; justify-content:space-between; gap:10px; background: rgba(255,255,255,0.03); }
+    .card .bd { padding: 14px; }
+    .label { font-size:12px; letter-spacing:0.08em; text-transform:uppercase; color:var(--muted); }
+    .big { font-size: 22px; font-weight: 720; letter-spacing:-0.02em; margin-top: 4px; }
+    .meta { display:flex; flex-wrap:wrap; gap:10px; color:var(--muted); font-size: 13px; }
+    .tag { padding: 4px 8px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.16); background: rgba(0,0,0,0.14); }
+    .q { font-size: 16px; line-height: 1.5; margin: 0 0 10px; }
+    .answers { display:flex; flex-direction:column; gap:10px; margin-top: 8px; }
+    .choice { border: 1px solid rgba(255,255,255,0.16); background: rgba(0,0,0,0.18); border-radius: 14px; padding: 10px 12px; cursor:pointer; transition: transform 0.05s ease, border-color 0.15s ease, background 0.15s ease; text-align:left; }
+    .choice:hover { border-color: rgba(122,162,255,0.5); background: rgba(122,162,255,0.12); }
+    .choice:active { transform: scale(0.99); }
+    .choice.correct { border-color: rgba(43,212,163,0.65); background: rgba(43,212,163,0.12); }
+    .choice.wrong { border-color: rgba(255,90,122,0.65); background: rgba(255,90,122,0.10); }
+    .reveal { margin-top: 12px; border-top: 1px solid rgba(255,255,255,0.14); padding-top: 12px; color: var(--muted); font-size: 14px; line-height: 1.45; white-space: pre-wrap; }
+    .reveal b { color: var(--text); }
+    .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+    .score { font-family: var(--mono); font-size: 13px; color: var(--muted); }
+    .kbd { font-family: var(--mono); font-size: 12px; padding: 2px 7px; border-radius: 9px; border: 1px solid rgba(255,255,255,0.18); background: rgba(0,0,0,0.22); color: var(--text); }
+    .sideitem { display:flex; flex-direction:column; gap:8px; padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,0.12); }
+    .sideitem:last-child { border-bottom:none; }
+    .smallbtns { display:flex; gap:8px; flex-wrap:wrap; }
+    .hr { height:1px; background: rgba(255,255,255,0.12); margin: 12px 0; }
+    .hint { font-size: 13px; color: var(--muted); line-height: 1.4; }
+    .toast { position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); background: rgba(0,0,0,0.55); border: 1px solid rgba(255,255,255,0.18); padding: 10px 12px; border-radius: 14px; box-shadow: var(--shadow); color: var(--text); max-width: 90vw; opacity: 0; pointer-events:none; transition: opacity 0.22s ease; }
+    .toast.show { opacity: 1; }
+  
+    .flowbox {
+      border: 1px solid rgba(255,255,255,0.14);
+      background: rgba(0,0,0,0.16);
+      border-radius: 16px;
+      padding: 12px;
+      margin-top: 10px;
+    }
+    .flowstep {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 8px;
+      white-space: pre-wrap;
+    }
+    .flowprompt {
+      font-size: 16px;
+      line-height: 1.45;
+      margin: 0 0 8px;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="title">
+        <h1>Con Law Study Trainer</h1>
+        <div class="sub">
+          Switch between Cases and your 14th Amendment outline. Keyboard: <span class="kbd">1-4</span> answer, <span class="kbd">Space</span> reveal/flip, <span class="kbd">N</span> next.
+        </div>
+      </div>
+
+      <div class="controls">
+        <div class="pill">
+          <span class="label">Dataset</span>
+          <select id="dataset">
+            <option value="cases" selected>Cases (sheet)</option>
+            <option value="outline">14th Amendment outline (doc)</option>
+          </select>
+        </div>
+        <div class="pill">
+          <span class="label">Mode</span>
+          <select id="mode">
+            <option value="quiz">Quiz</option>
+            <option value="flashcard">Flashcards</option>
+          </select>
+        </div>
+        <div class="pill" id="outlineStudyPill" style="display:none;">
+          <span class="label">Outline mode</span>
+          <select id="outlineMode">
+            <option value="flashcard" selected>Flashcards</option>
+            <option value="flow">Flow drill</option>
+          </select>
+        </div>
+
+        <div class="pill">
+          <span class="label">Focus</span>
+          <select id="section"></select>
+        </div>
+        <div class="pill" id="qtypePill">
+          <span class="label">Ask about</span>
+          <select id="qtype">
+            <option value="rule">Rule</option>
+            <option value="doctrine">Doctrine</option>
+            <option value="year">Year</option>
+            <option value="summary">Summary</option>
+            <option value="mixed" selected>Mixed</option>
+          </select>
+        </div>
+        <div class="pill">
+          <span class="label">Search</span>
+          <input id="search" type="text" placeholder="keyword" size="18"/>
+        </div>
+      </div>
+    </header>
+
+    <div class="grid">
+      <div class="card" id="mainCard">
+        <div class="hd">
+          <div>
+            <div class="label" id="cardLabel">Question</div>
+            <div class="big" id="cardTitle">Loading…</div>
+          </div>
+          <div class="row">
+            <div class="score" id="score"></div>
+            <button class="secondary" id="btnReveal">Reveal</button>
+            <button id="btnNext">Next</button>
+          </div>
+        </div>
+
+        <div class="bd">
+          <p class="q" id="question"></p>
+          <div id="answers" class="answers"></div>
+          <div id="reveal" class="reveal" style="display:none;"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="hd">
+          <div>
+            <div class="label">Session</div>
+            <div class="big">Progress</div>
+          </div>
+          <div class="smallbtns">
+            <button class="secondary" id="btnRestart">Restart</button>
+            <button class="danger" id="btnResetStats">Reset Stats</button>
+          </div>
+        </div>
+
+        <div class="bd" style="padding:0;">
+          <div class="sideitem">
+            <div class="label">Filtered pool</div>
+            <div class="meta">
+              <span class="tag" id="poolCount">0</span>
+              <span class="tag" id="sectionTag">All</span>
+              <span class="tag" id="modeTag">Quiz</span>
+            </div>
+          </div>
+
+          <div class="sideitem">
+            <div class="label">Spaced repetition (light)</div>
+            <div class="hint">
+              Correct answers show up less often. Missed ones come back sooner. Stored locally in your browser.
+            </div>
+          </div>
+
+          <div class="sideitem">
+            <div class="label">Context</div>
+            <div class="meta" id="metaLine"></div>
+            <div class="hr"></div>
+            <div class="hint" id="contextText"></div>
+          </div>
+
+          <div class="sideitem">
+            <div class="label">Note</div>
+            <div class="hint">
+              For the outline, Quiz mode uses other outline answers as distractors. If that gets annoying, switch to Flashcards.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+  </div>
+
+<script>
+const CASES = [{"section": "Fundamental Rights (SS)", "name": "Loving v. Virginia", "summary": "Ban on interracial marriage unconstitutional", "rule": "Right to marry a FR under DP clause", "doctrine": "FR to marriage", "year": "1967", "notes": ""}, {"section": "Fundamental Rights (SS)", "name": "Califano v. Jobst", "summary": "", "rule": "Restriction on reinstating social security benefits after foreign travel permissible because foreign travel is not a FR", "doctrine": "", "year": "", "notes": "FR not violated unless there is \"direct and substantial interference\"\n\nRestriction on reinstating social security benefits after foreign travel permissible because foreign travel is not a FR"}, {"section": "Fundamental Rights (SS)", "name": "Zablocki v. Redhail", "summary": "Marriage right not contingent on child support payment", "rule": "Marriage right not contingent on child support payment", "doctrine": "FR to marriage", "year": "1972", "notes": "Less restrictive alternative"}, {"section": "Fundamental Rights (SS)", "name": "Obergefell v. Hodges", "summary": "Ban on same sex marriage unconstitutional", "rule": "Same sex marriage supported by DP and EP clauses", "doctrine": "FR to marriage", "year": "2015", "notes": "\"two person union\""}, {"section": "Fundamental Rights (SS)", "name": "Allgeyer v. Lousiana", "summary": "Cotton insurance contract", "rule": "State may not prohbit citizens from entering into contracts outside the state", "doctrine": "FR to contract", "year": "1897", "notes": ""}, {"section": "Fundamental Rights (SS)", "name": "Lochner v. New York", "summary": "Baker's hours", "rule": "State cannot regulate hours of workers mutually agreed under contract", "doctrine": "FR to contract", "year": "1905", "notes": "In Lochner Era, SCOTUS imposed own ideas and moral judgment"}, {"section": "Fundamental Rights (SS)", "name": "Muller v. Oregon", "summary": "Laundry business owner let female worker labor 10+ hours/day", "rule": "State can regulate hours of women as a public health matter", "doctrine": "FR to contract", "year": "1908", "notes": ""}, {"section": "Fundamental Rights (SS)", "name": "Adkins v. Children's Hospital", "summary": "Hospital nurses sued for right to contract working hours freely", "rule": "Minimum wage law for women & children violates FR to contract", "doctrine": "FR to contract", "year": "1923", "notes": ""}, {"section": "Fundamental Rights (SS)", "name": "Weaver v. Palmer Bros.", "summary": "Bedding shoddy", "rule": "Consumer protection legislation violates right to contract", "doctrine": "FR to contract", "year": "1926", "notes": "State cannot enact consumer protection legislation when no significant public health concerns exist"}, {"section": "Fundamental Rights (SS)", "name": "West Coast Hotel v. Parrish", "summary": "Woman sues for difference in wages to husband", "rule": "Minimum wage law necessary for health & safety", "doctrine": "NO FR to contract", "year": "1937", "notes": "End of Lochner Era"}, {"section": "Fundamental Rights (SS)", "name": "US v. Carolene Products", "summary": "Filled milk", "rule": "Congressional legislation of common commercial productd scrutinized under rational basis tes", "doctrine": "Consumer protection legislation/ contract", "year": "", "notes": "Footnote 4: There is a presumption of Constitutionality, but there may be a narrower scope for the rights enumerated in the Constitution. Lays out theor of when to apply strict scrutiny: restriction of political process, discrete & insular minorities, and enumerated rights"}, {"section": "Fundamental Rights (SS)", "name": "Williamson v. Lee Optical of Oklahoma", "summary": "Optician cannot refit lenses", "rule": "State may regulat businesses if legislature determines it is a health and safety concern and regulation is a rational approach", "doctrine": "Consumer protection legislation/ contract", "year": "1955", "notes": "Example of post-Lochner judicial deference"}, {"section": "Fundamental Rights (SS)", "name": "Stanley v. Illinois", "summary": "Man denied custody after unmarried female partner dies", "rule": "Parents entitled to a hearing before being denied custody of children", "doctrine": "FR to custody of children", "year": "1972", "notes": "To demonstrate fitness: (1) biological offspring and (2) involvement in child's life\n\n\"procedure by presumption is always cheaper\"\nAdministrative convenience is not a compelling state interest"}, {"section": "Fundamental Rights (SS)", "name": "Michael H. v. Gerald D.", "summary": "Sordid marriage/affair scheme with daughter born during marriage", "rule": "Man has no right to assert custodial rights for child born duriong marriage of partner & another man", "doctrine": "FR to custody of children", "year": "1989", "notes": "Presumption that child born to married couple is the biological offspring of both\n\nDP rights \"rooted in history and tradition\" = unitary family"}, {"section": "Fundamental Rights (SS)", "name": "Moore v. City of East Cleveland", "summary": "Grandmother not allowed to cohabitate with grandson", "rule": "Right of related family members to live togther is FR and encompasses broader definition of family than only nuclear family", "doctrine": "FR to family ties", "year": "1977", "notes": "Narrow tailoring: \n(1) under inclusive -- doesn't include ppl it should (families with 10 kids)\n(2) over inclusive -- does include ppl it shouldn't (daily bus riders who are not family)"}, {"section": "Fundamental Rights (SS)", "name": "Meyer v. Nebraska", "summary": "Post-WWI anti-German sentiment", "rule": "State may not prohibit teaching of foreign language to children in school if parents request", "doctrine": "FR of parents to control child's eduction", "year": "1923", "notes": "Parental control over child's education is \"fundamental liberty interest\""}, {"section": "Fundamental Rights (SS)", "name": "Pierce v. Society of the Sisters of the Holy Names of Jesus and Mary", "summary": "Suit against private school", "rule": "Requiring children to be educated only by public instruction violates 14th Amendment", "doctrine": "FR of parents to control child's eduction", "year": "1925", "notes": ""}, {"section": "Fundamental Rights (SS)", "name": "Troxel v. Granville", "summary": "Grandparents want visitation rights but DIL does not", "rule": "State cannot grant visitation rights to a person if the child's parent opposes, even if in child's best interest", "doctrine": "FR of parents to control upbringing of children", "year": "2000", "notes": ""}, {"section": "Fundamental Rights (SS)", "name": "Buck v. Bell", "summary": "Eugenics case sterilizing \"feeble-minded\" woman", "rule": "Right to reproduce is not a fundamental liberty", "doctrine": "NO right to reproductive autonomy", "year": "1927", "notes": ""}, {"section": "Fundamental Rights (SS)", "name": "Skinner v. Oklahoma", "summary": "OK law required sterilization of 2x convicts", "rule": "Right to reproduce is a fundamental liberty", "doctrine": "Right to reproductive autonomy (procreation)", "year": "1942", "notes": "Overturned Buck\nCourt ordinarily does not care about class, but in this case a FR is involved"}, {"section": "Fundamental Rights (SS)", "name": "Griswold v. Connecticut", "summary": "Two people provided contraceptives to married couples", "rule": "Implied right to privacy precludes state entering into marital decisions", "doctrine": "Right to contraceptives", "year": "1965", "notes": "Privacy theory"}, {"section": "Fundamental Rights (SS)", "name": "Eisenstadt v. Baird", "summary": "Lecturer gave talk on contraception and gave student a sponge", "rule": "State cannot outlaw contraception to unmarried people", "doctrine": "Right to contraceptives", "year": "1972", "notes": "FR + classification worry (cf. Skinner)"}, {"section": "Fundamental Rights (SS)", "name": "Parham", "summary": "", "rule": "", "doctrine": "", "year": "", "notes": "Court must presume parents act in a child's best interest"}, {"section": "Fundamental Rights (SS)", "name": "Roe v. Wade", "summary": "Texas law restricted abortion to cases only for life of mother", "rule": "The constitutional right to privacy protects a woman’s right to choose to have an abortion.", "doctrine": "Right to abortion", "year": "1973", "notes": "Privacy theory"}, {"section": "Fundamental Rights (SS)", "name": "Planned Parenthood v. Casey", "summary": "", "rule": "A state abortion regulation places an undue burden on a woman’s right to an abortion and is invalid if its purpose or effect is to place a substantial obstacle in the path of a woman seeking an abortion before the fetus attains viability.", "doctrine": "Right to abortion", "year": "1992", "notes": "Court creates \"undue burden\" standard\n\n\"substantial obstacle\" language"}, {"section": "Fundamental Rights (SS)", "name": "Dobbs v. Jackson Women's Health Organization", "summary": "", "rule": "(1) The United States Constitution does not confer a right to abortion.\n\n(2) The Supreme Court may overrule a wrongly decided constitutional decision.", "doctrine": "NO right to abortion", "year": "2022", "notes": "Roe and Casey wrongly rely on DPC. \"That provision has been held to guarantee some rights that are not mentioned in the Constitution, but any such right must be 'deeply rooted in this Nation's history and tradition' and 'implicit in the concept of ordered liberty'.\" Washington v. Glucksberg."}, {"section": "Fundamental Rights (SS)", "name": "Cruzan v. Missouri Dept. Health", "summary": "", "rule": "A state may require that a guardian seeking to remove life-prolonging treatment prove by clear and convincing evidence that the person in the persistent vegetative state would have wanted the treatment withdrawn under such circumstances.", "doctrine": "Right to refuse medical treatment", "year": "1990", "notes": "FR exists, but evidentiary standard is CCE"}, {"section": "Fundamental Rights (SS)", "name": "Washington v. Glucksberg", "summary": "", "rule": "There is no fundamental right to assisted suicide that is protected by the Due Process Clause.", "doctrine": "NO right to physician-assisted death", "year": "1997", "notes": "Gives us \"deeply rooted in the nation's history and tradition\" and \"implicit in the concept of ordered liberty\"\n\nApplies rational basis scrutiny"}, {"section": "Fundamental Rights (SS)", "name": "Vacco v. Quill", "summary": "", "rule": "New York’s ban on physician assisted suicide is constitutional and rationally related to a legitimate state interest that is prohibitive to all persons similarly situated.", "doctrine": "NO right to physician-assisted death", "year": "1997", "notes": ""}, {"section": "Fundamental Rights (SS)", "name": "Bowers v. Hardwick", "summary": "", "rule": "The United States Constitution does not provide same-sex individuals with a fundamental right to engage in private, consensual sodomy.", "doctrine": "Sexual orientation & activity", "year": "1986", "notes": ""}, {"section": "Fundamental Rights (SS)", "name": "Lawrence v. Texas", "summary": "", "rule": "The Due Process Clause of the Fourteenth Amendment includes a right to liberty in individuals’ decisions concerning the intimacies of their physical relationships.", "doctrine": "Sexual orientation & activity", "year": "", "notes": "\"Rational basis with bite\" -- rare case where SCOTUS strikes down despite rational basis review\n\n\"born of animosity\"  animus + stigma\n\nAlso, Carolene Products footnote 4: invidious discrimination--but court does not recognize LGBTQ as \"suspect classification\""}, {"section": "Fundamental Rights (SS)", "name": "Saenz v. Roe", "summary": "CA law required waiting period for new residents to obtain welfare benefits", "rule": "A state violates the Fourteenth Amendment’s Privileges or Immunities Clause by limiting welfare benefits based on a person’s status as a new resident.", "doctrine": "Right to enter/exit\nRight to be treated as a welcome visitor\nRight of new resident to be treated as an equal citizen", "year": "", "notes": "Right to travel is based on Privileges & Immunities clause\n\nRestrictions possible for \"readily portable\" benefits like in-state tuition; also 50 days for voter registration and time period for divorce"}, {"section": "Fundamental Rights (SS)", "name": "Califano v. Jobst", "summary": "", "rule": "Restriction on reinstating social security benefits after foreign travel permissible because foreign travel is not a FR", "doctrine": "", "year": "", "notes": "FR not violated unless there is \"direct and substantial interference\"\n\nRestriction on reinstating social security benefits after foreign travel permissible because foreign travel is not a FR"}, {"section": "Fundamental Rights (SS)", "name": "Harper v. Virginia State Board of Elections", "summary": "VA poll tax of $1.50 unfair to poor", "rule": "Poll taxes in all elections are unconstitutional as a denial of equal protection of the laws.", "doctrine": "FR to vote", "year": "1966", "notes": "Wealth/property qualifications generally disfavored\n\nCites \"invidious discrimination\" (from Carolene Products Footnote 4) based on wealth and class"}, {"section": "Fundamental Rights (SS)", "name": "Kramer v. Union Free School District", "summary": "", "rule": "A state statute that denies the right to vote in school-district elections to some district residents who are otherwise qualified to vote by age and citizenship violates the Equal Protection Clause of the Fourteenth Amendment unless the exclusion of these residents is necessary to further compelling state interests.", "doctrine": "FR to vote", "year": "1969", "notes": "NB: Court has allowed property qualifications in water-district elections\n\n•Landowners bear burden of district's costs\n•Effects of water disrict regulations far greater on landowners\n•Water district does not provide general public services"}, {"section": "Fundamental Rights (SS)", "name": "Guinn v. US", "summary": "", "rule": "Literacy test as prerequisite for voting is constitutional", "doctrine": "Voting right: literacy test okay", "year": "1915", "notes": ""}, {"section": "Fundamental Rights (SS)", "name": "Lassiter v. Northampton Co. Board of Elections", "summary": "", "rule": "Voting eligibility conditioned on literacy test is okay", "doctrine": "Voting right: literacy test okay", "year": "1955", "notes": ""}, {"section": "Fundamental Rights (SS)", "name": "O'Brien v. Skinner", "summary": "", "rule": "Govt must provide absentee ballots to unconvicted jail inmates", "doctrine": "Voting right", "year": "1974", "notes": ""}, {"section": "Fundamental Rights (SS)", "name": "Richardson v. Ramirez", "summary": "", "rule": "State can permanently disenfranchise felons", "doctrine": "Voting right: felons", "year": "1974", "notes": ""}, {"section": "Fundamental Rights (SS)", "name": "Hunter v. Underwood", "summary": "Alabama law", "rule": "Racially discriminatory purpose in felon disenfranchisement law is unconstitutional", "doctrine": "Voting right: no discrimination", "year": "1985", "notes": ""}, {"section": "Fundamental Rights (SS)", "name": "Crawford v. Marion County Election Board", "summary": "Facial challenge to Indiana statute requiring photo ID to vote", "rule": "State can require photo ID for voting", "doctrine": "Voting right: photo ID", "year": "2008", "notes": "3 plurality --sliding scale test (voter burden vs. election integrity\n3 concurrence -- RBR\n3 dissent -- sliding scale test\n\nRational basis scrutiny"}, {"section": "Fundamental Rights (SS)", "name": "Reynolds v. Sims", "summary": "Alabama had not reapportioned voting districts since 1900", "rule": "The Equal Protection Clause requires the seats in a bicameral state legislature to be apportioned on a population basis that equally weights one vote for every one person residing in a state legislative district.", "doctrine": "Voting right dilution", "year": "1964", "notes": "One person, one vote"}, {"section": "Fundamental Rights (SS)", "name": "Gray v. Sanders", "summary": "", "rule": "For any legislative body, all districts must be about the same population size", "doctrine": "", "year": "1963", "notes": "\"one person, one vote\""}, {"section": "Equal Protection (RBR)", "name": "Romer v. Evans", "summary": "Colorado municipalities passed ordinances banning discrimination based on sexual orientation", "rule": "A law prohibiting antidiscrimination protections for the gay, lesbian, and bisexual community violates the Equal Protection Clause of the Fourteenth Amendment.", "doctrine": "Equal protection, LGBTQ rights\n\nRBR with bite", "year": "1996", "notes": "No FR at stake\nbare desire to harm a particular group is not  legitimate government interest"}, {"section": "Equal Protection (RBR)", "name": "Railway Express Agency v. New York", "summary": "New York regulation of advertising on business vehicles", "rule": "A state law that is substantially underinclusive does not necessarily violate the Equal Protection Clause, because a state may rationally decide to address a public problem in phases.", "doctrine": "Equal protection", "year": "1949", "notes": "Underinclusive & arbitrary"}, {"section": "Equal Protection (RBR)", "name": "New York City Transit Authority v. Beazer", "summary": "Class action against New York City Transit Authority policy of not hiring methadone maintenance program participants.", "rule": "A state regulation that is overinclusive because it regulates a general class of persons based on the conduct of particular members within that class does not violate the Equal Protection Clause of the Constitution if it is rationally related to a legitimate state purpose.", "doctrine": "Equal protection", "year": "1979", "notes": "Tolerance for overinclusiveness under RBR"}, {"section": "Equal Protection (RBR)", "name": "US Dept. of Agriculture v. Moreno", "summary": "Law terminated food-stamp benefits unrelated people living in the same household", "rule": "A state regulation that arbitrarily creates two classes of persons and deprives one class of government benefits violates the Equal Protection Clause and Due Process Clause of the Fifth Amendment because it is based on a mere legislative preference for one class that is not rationally related to a legitimate state purpose.", "doctrine": "Equal protection,\n\nRBR with bite", "year": "1973", "notes": "Arbitrary and unreasonable, creates two classes of people and deprives one of benefits"}, {"section": "Equal Protection (RBR)", "name": "City of Cleburne v. Cleburne Living Center", "summary": "Special use permit to build a residential facility for mentally disabled individuals denied", "rule": "The mentally disabled are not a quasi-suspect class, and thus any legislative regulations affecting their rights are subject to rational-basis review and not intermediate scrutiny.", "doctrine": "Equal protection,\n\nRBR with bite", "year": "1979", "notes": "Mentally disabled are not quasi-suspect class\n\nFederal legislation already protects the mentally disabled, showing they are not politically powerless. Applying heightened scrutiny could discourage legislative efforts to protect them. Rational basis review is appropriate to avoid future classification issues."}, {"section": "Equal Protection (RBR)", "name": "Dred Scott v. Sandford", "summary": "Dred Scott, an African American man born a slave, sued for his freedom after being taken to free states by his owner. T", "rule": "People of African descent brought to the United States and held as slaves, as well as their descendants (either slave or free), are not considered citizens of the United States and are not entitled to the protections and rights of the Constitution.", "doctrine": "Classification based on race & national origin", "year": "1857", "notes": ""}, {"section": "Equal Protection (RBR)", "name": "Korematsu v. United States", "summary": "Fred Korematsu defied World War II executive order for exclusion of all persons of Japanese ancestry from certain military areas.", "rule": "Government restrictions targeting a specific racial group are inherently suspect and subject to strict scrutiny.", "doctrine": "Race-specific classifications that disadvantage minorities", "year": "1944", "notes": "racial classifications are inherently suspect, but can be justified by a \"pressing public necessity.\" The exclusion order was deemed necessary to prevent espionage and sabotage during wartime, thus satisfying strict scrutiny."}, {"section": "Equal Protection (RBR)", "name": "Loving v. Virginia", "summary": "Mildred Jeter and Richard Loving married in the District of Columbia, and moved to Virginia where interracial marriages were banned", "rule": "A state may not enact a statute that prevents marriages between persons solely on the basis of racial classification without violating the Equal Protection and Due Process Clauses of the Fourteenth Amendment.", "doctrine": "Racial classifications burdening both whites and minorities", "year": "1967", "notes": "•Motivated solely to restrict marriage based on race\n•Race-based classifications are subject to strict scrutiny\n•Statute could not be justified by any legitimate state interest independent of racial discrimination"}, {"section": "Equal Protection (RBR)", "name": "Palmore v. Sidoti", "summary": "White woman remarries black man; court grants custody of prior child to white father", "rule": "The deprivation of custody of an infant child from her mother solely because of the risk of racial biases violates the Equal Protection Clause of the Fourteenth Amendment.", "doctrine": "Racial classifications burdening both whites and minorities", "year": "1984", "notes": "Q: Parham?"}, {"section": "Equal Protection (RBR)", "name": "Plessy v. Ferguson", "summary": "Louisiana law separated train cars. Plessy, who was 7/8  Caucasian, challenged the law by sitting in a Caucasian car.", "rule": "Public accommodations that are segregated according to racial classifications do not violate the Equal Protection Clause of the Fourteenth Amendment as long as such accommodations are “separate but equal.”", "doctrine": "Laws requiring separation of races", "year": "1896", "notes": "\"separate but equal\""}, {"section": "Equal Protection (RBR)", "name": "Brown v. Board of Education (consolidation)", "summary": "African American minors seeking admission to public schools on a nonsegregated basis", "rule": "Separate educational facilities based on racial classifications are inherently unequal and violate the Equal Protection Clause of the Fourteenth Amendment.", "doctrine": "Laws requiring separation of races", "year": "1954", "notes": "Ends segregation"}, {"section": "Equal Protection (RBR)", "name": "Washington v. Davis", "summary": "", "rule": "A racially neutral government act that disproportionately impacts one race over another does not violate equal protection if there is no discriminatory intent.", "doctrine": "Proof of discriminatory purpose", "year": "1976", "notes": ""}, {"section": "Equal Protection (RBR)", "name": "McCleskey v. Kemp", "summary": "", "rule": "A criminal defendant alleging an equal-protection violation must prove the existence of a discriminatory purpose and a racially disproportionate and discriminatory effect.", "doctrine": "Proof of discriminatory purpose", "year": "1987", "notes": ""}, {"section": "Equal Protection (RBR)", "name": "City of Mobile v. Bolden", "summary": "", "rule": "Evidence of discriminatory intent is necessary for a voting process to violate the Fifteenth Amendment or the Equal Protection Clause of the Fourteenth Amendment.", "doctrine": "", "year": "1980", "notes": ""}, {"section": "Equal Protection (RBR)", "name": "Palmer v. Thompson", "summary": "", "rule": "A state regulation based on racial classifications is unconstitutional under the Equal Protection Clause if the plaintiff proves both a discriminatory purpose and a discriminatory impact of the regulation.", "doctrine": "", "year": "1971", "notes": ""}, {"section": "Equal Protection (RBR)", "name": "Personnel Administrator of Massachusetts v. Feeny", "summary": "", "rule": "To prove that a state actor violates the Equal Protection Clause by enacting legislation with a discriminatory purpose, a plaintiff must show that the decision-maker selected or reaffirmed a particular course of action at least in part because of, not merely in spite of, its adverse effects upon an identifiable group.", "doctrine": "", "year": "1979", "notes": ""}, {"section": "Equal Protection (RBR)", "name": "Village of Arlington Heights v. Metropolitan Housing Development Corp.", "summary": "", "rule": "Government action does not violate the Equal Protection Clause if it has a racially discriminatory effect but is not motivated by a racially discriminatory purpose.", "doctrine": "", "year": "1977", "notes": ""}, {"section": "Equal Protection (RBR)", "name": "Richmond v. J.A. Croson", "summary": "City creates 30% set-aside to award construction contracts to minority-owned local businesses", "rule": "Without evidence of past particular race-based discrimination, a city may not enact a plan to provide a race-based set-aside to exclusively promote minority business enterprises, as this does not constitute narrowly tailored means geared towards accomplishing a compelling state purpose.", "doctrine": "Racial classification", "year": "1989", "notes": "Strict scrutiny for racial classifications\n\nDiscrimination must be particularized to an individual"}, {"section": "Equal Protection (RBR)", "name": "Regents of University of CA v. Bakke", "summary": "", "rule": "Under the Equal Protection Clause of the Fourteenth Amendment, a public university may not discriminate on the basis of race in its admissions policies, even if doing so benefits members of minority races.", "doctrine": "Racial classification in education admissions (affirmative action)", "year": "1978", "notes": "No majority.\n4: racial classification for remedial purpose = intermediate scrutiny\n4: did not reach consitutional issue, decided on basis of Title VI\n1: stricy scrutiny for affirmative action"}, {"section": "Equal Protection (RBR)", "name": "Grutter v. Bollinger", "summary": "Michigan Law School affirmative action program", "rule": "Consideration of race as a factor in admissions by a state law school does not violate the Fourteenth Amendment, because supporting student-body diversity is a compelling state interest; however, the school must demonstrate it previously made a serious, good-faith consideration of workable, race-neutral alternatives to achieve the sought-after racial diversity.", "doctrine": "Racial classification in education admissions (affirmative action)", "year": "2003", "notes": ""}, {"section": "Equal Protection (RBR)", "name": "Students for Fair Admissions v. President and Fellows of Harvard College", "summary": "", "rule": "Consideration of race in the college-admissions process typically violates the Equal Protection Clause.", "doctrine": "Racial classification in education admissions (affirmative action)", "year": "2023", "notes": ""}, {"section": "Equal Protection (RBR)", "name": "Easley v. Cromartie", "summary": "", "rule": "A plaintiff seeking to challenge a state legislature’s drawing of a political district on the grounds that it violates the race-neutral protections of the Equal Protection Clause must show that race was the predominant factor motivating the legislature’s districting decision.", "doctrine": "Racial classification in voting districts", "year": "2001", "notes": ""}, {"section": "Equal Protection (RBR)", "name": "Cooper v. Harris", "summary": "", "rule": "Under the Equal Protection Clause of the Fourteenth Amendment, states may not, absent sufficient justification, separate its citizens into different voting districts on the basis of race.", "doctrine": "Racial classification in voting districts", "year": "2017", "notes": ""}];
+const OUTLINE = [{"topic": "14A Outline", "question": "For every state action by a state", "answer": "The (whatever amendment) applies to (whatever state) via the 14th Amendment doctrine of incorporation.\n\nSubstantive Due Process: Due Process Clause of the 14th Amendment “nor shall any state deprive any person of life, liberty, or property, without due process of law” → in other words: is there a sufficient purpose for this deprivation?\n\n1st step of analysis: Identify the state action. If there is one, we are in the “con law ballpark”.\nIf it is a federal action, 5th Amendment Due Process Clause.\n\n2nd step: What “area of life” does the state action affect? What’s the liberty interest at stake? Is there a fundamental right involved? If yes, go to step 3. If not, then Rational Basis Review applies.\n\nRational Basis Review: Is the state action rationally related to a legitimate government purpose?\nChallenger has the burden, highly deferential to the state.\nGenerally, courts will attribute to the government a legitimate purpose.\nThere is tolerance for under/over inclusiveness\nRailway Express Agency - methadone users won’t be hired by NYC Transit Authority\nLaws will be upheld unless the government’s action is “clearly wrong, a display of arbitrary power, not an exercise of judgment”\nUSDA v. Moreno - “bare congressional desire to harm a politically unpopular group cannot constitute legitimate governmental interest”\n\n3rd step: If there is a fundamental right involved, has the fundamental right been infringed? Courts will consider “the directness and substantiality of the interference”\n\n4th step: If the fundamental right has been infringed (highly direct and highly substantial interference), apply a strict scrutiny test.\n\nStrict scrutiny test: Is the state action necessary to achieve a compelling government purpose?\nState has the burden, highly skeptical towards the state.\nThe Court may scrutinize classifications: invidious", "tags": ["For every state action by a state"]}, {"topic": "14A Outline", "question": "Narrow Tailoring", "answer": "Are there any less restrictive alternatives?\nCan I achieve this purpose without infringing upon this fundamental right? Must give examples.\n(Zablocki - there were less restrictive alternatives to ensure that child support was being paid than stopping those who didn’t pay from getting married)", "tags": ["Narrow Tailoring"]}, {"topic": "14A Outline", "question": "Overinclusive? (Moore)", "answer": "Does it include people/conduct that should not be included?", "tags": ["Overinclusive? (Moore)"]}, {"topic": "14A Outline", "question": "Underinclusive? (Moore)", "answer": "Does it exclude people/conduct that should be included? Are there people who the law should reach that it does not reach?", "tags": ["Underinclusive? (Moore)"]}, {"topic": "14A Outline", "question": "Marriage", "answer": "Loving v. Virginia - cannot ban interracial marriage\nObergefell v. Hodges - gay marriage\nCustody of One’s Children\nStanley v. Illinois - fit parents (some involvement in the child’s life)", "tags": ["Marriage"]}, {"topic": "14A Outline", "question": "To Keep Family Together", "answer": "Moore - definition of “family” was not narrowly tailored, both over and underinclusive, family is not just nuclear family, as long as there are blood ties (adoption/foster families do not count)\nTo Control Child’s Upbringing/Education\nMeyer v. Nebraska - teaching German language to children\nPierce v. Society of Sisters - can send kids to private schools\nPrince v. Massachusetts - upheld child labor laws for 9 year old Jehovah Witness girl soliciting on behalf of parents\nReasoning: though there is a private realm of family life which the state cannot enter, the family itself is not beyond regulation in the public interest → need to protect children from exploitation\nWisconsin v. Yoder - Amish have right to exempt teens from compulsory public schooling\nTroxel - court does not afford parent’s views any deference as to non-parental visitation statutes\nParham v. JR - state must presume that parent is acting in best interests of child", "tags": ["To Keep Family Together"]}, {"topic": "14A Outline", "question": "To Control Procreation", "answer": "Skinner v. Oklahoma - people who commit “crimes of moral turpitude” cannot be sterilized", "tags": ["To Control Procreation"]}, {"topic": "14A Outline", "question": "To Access Contraception", "answer": "Cannot find those who prevent conception through drug, medical instrument, etc\nCourt says not SDP (but still is): “penumbras, formed by emanations” - zones of privacy derived from 1st, 3rd, 4th, 5th, and 9th Amendments\nEisenstadt v. Baird - extends right to access contraception to unmarried couples\nInterstate Travel - Derived from Privileges & Immunities Clause of 14th Amendment\nSplit into three rights\nRight to exit/enter state\nRight of out-of-state visitor to be treated as a “welcome visitor”\nRight of new resident to be treated as an equal citizen in new state\nBut state can restrict out-of-state access to “portable goods” (rational basis review)\nExamples: divorce, in-state tuition\nState can impose duration requirements for, e.g., voting\nSaenz v. Roe - Court struck down a CA law that differentiated between residents who had resided in the state for over a year and under a year in their distribution of welfare benefits.", "tags": ["To Access Contraception"]}, {"topic": "14A Outline", "question": "To Refuse Life Sustaining Medical Care", "answer": "Cruzan v. Director - daughter was in vegetative state but no clear and convincing evidence to show she would have refused life-prolonging treatment\nEvidence standard is constitutionally permissible\nConstitutional Protection for Sexual Orientation & Sexual Activity\nLawrence v. Texas - no recognition of fundamental right, but strict scrutiny (rational basis with bite?) is used", "tags": ["To Refuse Life Sustaining Medical Care"]}, {"topic": "14A Outline", "question": "Equal Protection Fundamental Right", "answer": "On state and local level, don’t have to grant the right to vote, but if you do you can’t make invidious classifications to decide who votes\nHarper v. VA - wealth/property qualifications are generally disfavored and receive strict scrutiny\nKramer v. Union Free School District - statute limiting election to only those who were “directly interested” wasn’t narrowly tailored\nImportant exception: Water District Cases\nLocal government entity that provides water and sewer service", "tags": ["Equal Protection Fundamental Right"]}, {"topic": "14A Outline", "question": "State can impose property qualifications in water district elections when/because", "answer": "Landowners bear the entire burden of the district’s costs\nEffects of water district regulations far greater on landowners\nWater district does not provide general public services\nCrawford - laws establishing voter qualifications related to the franchise (establishing criteria to register to vote, like IDs) are allowed\nEffectively rational basis review\nBalancing test between burden/state interests\nsliding scale analysis, case by case", "tags": ["State can impose property qualifications in water district elections when/because"]}, {"topic": "14A Outline", "question": "Economic Activity/Contract", "answer": "West Coast Hotel - end of Lochner era\nWilliamson v. Lee Optical - highly deferential to the state,", "tags": ["Economic Activity/Contract"]}, {"topic": "14A Outline", "question": "Abortion", "answer": "Dobbs - making illegal abortion after 15 weeks\nTo identify a fundamental right, it must be “deeply rooted in history and tradition” and “implicit in the concept of ordered liberty”", "tags": ["Abortion"]}, {"topic": "14A Outline", "question": "Physician Assisted Suicide", "answer": "Glucksberg - not deeply rooted in history and tradition", "tags": ["Physician Assisted Suicide"]}, {"topic": "14A Outline", "question": "Equal Protection Clause of 14th Amendment", "answer": "If it is a federal action, 5th Amendment Due Process Clause’s equal protection component.\nIf state action, the 14 Amendment\n\n1st step of analysis: Identify the state action. If there is one, we are in the “con law ballpark”.\n\n2: Is there a facial classification? If yes, move to 3A. If not, move to 3B.\nFacial Classification: draws distinction, on its face (directly in the text), between different groups of people.\n\n3A: Is the classification suspect or quasi suspect?\n\nSuspect classification: Race, national origin, alienage!\nQuasi-suspect classification: gender (not pregnancy or abortion), illigitimacy\nNot a suspect or quasi suspect class: age, height, wealth, physical/cognitive disability, sexual orientation, being a “hippie”, and everything else\n\n4: What level of scrutiny is applied to this classification?\nSuspects are strict. Quasi-suspect is intermediate. If it’s neither, it's a rational basis review.\n\n3B: Is there a disparate impact affecting a suspect or quasi suspect group? If yes, is there evidence of discriminatory purpose? If not, is there evidence that the law was motivated by animus? If yes, apply “rational basis with bite”. If not, Rational Basis Review.\nDiscriminatory Impact: law does not explicitly distinguish between groups in the text, but the law has different effects upon different groups.\nDisparate Impact alone does not raise the level of scrutiny.\nDisparate Impact + no evidence of discriminatory purpose → rational basis review\nDisparate Impact + evidence of discriminatory purpose → heightened scrutiny\nStatutes can remove requirements for discriminatory purposes.", "tags": ["Equal Protection Clause of 14th Amendment"]}, {"topic": "14A Outline", "question": "Proving discriminatory purpose", "answer": "Feeney - “at least in part because of, not in spite of” - state action created precisely to disparately impact …\nSometimes there is a “clear pattern, unexplainable on grounds other than race”\nYick Wo - denied petitions of all but one of laundry operators of Chinese descent, while granting permits to 80 of 81 applicants who were not of Chinese descent.", "tags": ["Proving discriminatory purpose"]}, {"topic": "14A Outline", "question": "But “such cases are rare” and instead point to Arlington Heights factors", "answer": "Sequence of events leading up to the outcome", "tags": ["But “such cases are rare” and instead point to Arlington Heights factors"]}, {"topic": "14A Outline", "question": "Historical Background", "answer": "Procedural/substantive departures\nLegislative history and lawmaker statements\nBut then burden shifts to Defendant to show that the same decision would have resulted anyways\n\nIntermediate Scrutiny: Is the state action substantially related to the achievement of an important government objective?\n\nCraig v. Boren → classifying between women and men for legal age to drink non intoxicating alcohol. Some statistical disparity is not necessarily enough to survive scrutiny.\nVMI → Sometimes the court will demand an “exceedingly persuasive justification” for the quasi suspect class of gender, since there is a debate on how demanding scrutiny should be. Virginia policy excluding women from attending Virginia Military Institute\nDobbs → Abortion is not a sex-based classification\nGeduldig (matter of constitutional law pregnancy is not a sex based classification) - pregnancy related disabilities not covered under California program, split into two groups recipients of which one includes only women and one includes both men and women\n\nGender classifications benefitting women based on role stereotypes generally will not be allowed\nOrr v. Orr - alimony statutes provide that husbands and not wives must pay\nGender neutral alternatives\nMississippi University for Women v. Hogan - “archaic and stereotypical notions” - policy of excluding males from admission to MUW School of Nursing perpetuates stereotyped view that nurse is exclusively women’s job\nSometimes gender classifications seemingly based on stereotypes are allowed\nMichael M - gender neutral statute would not be as effective as California statutory rape law which only talks about women, upheld - Sometimes sex-based claassifications can be used when there is an inequality of punishment for the actions undertaken\nRostker v. Goldberg - only men can be drafted for military, upheld because court defers to military\nInherent biological differences can result in allowing sex-based classifications\nINS v. Nguyen - difference in treatment of unmarried couples when father is citizen vs mother is citizen\n\n5: Does the particular government action meet the level of scrutiny?", "tags": ["Historical Background"]}, {"topic": "14A Outline", "question": "“Rational basis with bite” Equal Protection cases where non-suspect groups receive", "answer": "Romer v. Evans - prohibited all governmental intervention designed to protect the status of persons based on their sexual orientation, conduct, practices, or relationships - Animus (“a bare desire to harm”) is not a legitimate state interest\nUSDA v. Moreno - hippies “politically unpopular group”\nCity of Cleburne - while disability is not a suspect classification, permit denial to group home for cognitively disabled was unconstitutional as applied since it “rest[ed] on an irrational prejudice against” the disabled", "tags": ["“Rational basis with bite” Equal Protection cases where non-suspect groups receive"]}, {"topic": "14A Outline", "question": "Benefitting minority groups", "answer": "Richmond v. Croson\nRacial classifications always warrant strict scrutiny, even if it is “benign” or “remedial”\nInstead of less restrictive alternatives, we look for race-neutral alternatives\nQuotas are never permissible under strict scrutiny.\nCompelling state interest: remedying past discrimination\nNeeds to have a “strong basis of evidence,” specifically pertaining to past discrimination undertaken by the city with identifiable victims\nRequires specific evidence to show that remedial action would fix this particular past discrimination\nHave a defined period of time when remedial action ends\nStudents for Fair Admissions v. Harvard\nAffirmative Action at universities is unconstitutional\nMust pass strict scrutiny\nAchieving Racial Diversity is no longer a compelling state interest\nGender classifications benefiting women, designed to remedy past discrimination and differences in opportunity are generally permitted\nCalifano v. Webster - no sex stereotypes, more favorable treatment of female wage earner under Social Security Act is permissible in “redressing our society’s longstanding disparate treatment of women”\nAlienage classifications - discrimination against non-us citizens\nGeneral rule for alienage classifications: strict scrutiny\nPlyler v. Doe → heightened level of judicial review should be applied in cases dealing with the children of undocumented immigrants.\nstate may not deny free public education to children not legally admitted into the United States without violating the Equal Protection Clause.\nstates have no similar authority regarding the classification of or discrimination against aliens.\nan exception to the exception (self government and democratic process)!\nEXCEPTIONS - RBR for alienage classifications involving:\nself government and the democratic process\nFoley v. Connelie - states may require government officers involved in the making of state policy to be United States citizens.\nprevious cases have upheld state alienage classifications on a rational-basis review for a state’s denial of an alien’s right to vote, the right to run for state office, or the right to participate in jury service.\nlesser standard of scrutiny is required when reviewing alienage classifications made in relation to matters firmly delegated to state control.\npolice officers do not formulate policy, but they are endowed with a great amount of discretionary judgment for carrying out state policies.\nAmbach v. Norwick - excluding aliens from teaching positions, “Teachers “perform[] a task that goes to the heart of representative government” through role modeling.\nCongress/Executive’s Plenary Authority over Immigration\nIf Congress (or exec) has created the alienage classification\nCourt has said that Congress has plenary power to control immigration\nNon-marital children targeted by Discrimination\nIf Law distinguishes between marital and nonmarital children, apply Strict Scrutiny. Law is very likely struck down.\nIf Law distinguishes among nonmarital children, apply Intermediate Scrutiny. Law may survive analysis.\n\n1st Amendment Analysis", "tags": ["Benefitting minority groups"]}, {"topic": "14A Outline", "question": "EXCEPTIONS - RBR for alienage classifications involving", "answer": "self government and the democratic process\nFoley v. Connelie - states may require government officers involved in the making of state policy to be United States citizens.\nprevious cases have upheld state alienage classifications on a rational-basis review for a state’s denial of an alien’s right to vote, the right to run for state office, or the right to participate in jury service.\nlesser standard of scrutiny is required when reviewing alienage classifications made in relation to matters firmly delegated to state control.\npolice officers do not formulate policy, but they are endowed with a great amount of discretionary judgment for carrying out state policies.\nAmbach v. Norwick - excluding aliens from teaching positions, “Teachers “perform[] a task that goes to the heart of representative government” through role modeling.\nCongress/Executive’s Plenary Authority over Immigration\nIf Congress (or exec) has created the alienage classification\nCourt has said that Congress has plenary power to control immigration\nNon-marital children targeted by Discrimination\nIf Law distinguishes between marital and nonmarital children, apply Strict Scrutiny. Law is very likely struck down.\nIf Law distinguishes among nonmarital children, apply Intermediate Scrutiny. Law may survive analysis.\n\n1st Amendment Analysis", "tags": ["Benefitting minority groups", "EXCEPTIONS - RBR for alienage classifications involving"]}, {"topic": "14A Outline", "question": "Free exercise Clause is triggered when", "answer": "The government prohibits behavior that a person's religion requires\nThe government requires conduct that a person’s religion prohibits\nThe government burdens or makes more difficult religious observances\nTwo primary categories in application: Religion in education and state funding for religious activities.", "tags": ["Free exercise Clause is triggered when"]}, {"topic": "14A Outline", "question": "Order of Analysis", "answer": "State action\nState action that triggers free exercise/establishment clause\nIncorporation: The 1st Amendment applies to __________ (State) through the 14th Amendment doctrine of incorporation.\nSmith test (Free exercise clause) and/or Establishment clause analysis.\nApply applicable tests from our expression toolkit.\nSmith test: laws that are\nNeutral (no animus)\nGenerally applicable\nAnd impose an incidental burden on religious practices\nIf it meets all of these → rational basis\nOtherwise → strict scrutiny\nWhat counts as religion?\nCourt tests for sincerity, not truth (Ballard v. US)\nState can only ask: Is the belief sincere?\nUnited States v. Kuch - example of a religious organization failing the sincerity test.\nits members must be united under a common religious concern and spiritual discipline.\nEvidence of a common religious concern include a belief in a supreme being, or daily rituals or tenets that guide a practitioner’s life.\nCan be a church of ONE, court does not require orthodox beliefs or practices\nConscientious objector cases: court asks if this looks like religion (US v. Seager)", "tags": ["Order of Analysis"]}, {"topic": "14A Outline", "question": "Neutrality", "answer": "Church of the Lukami Babalu - state was targeting members of Santeria religion\nNot neutral because the law’s objective was to prohibit a religion\nMasterpiece Cakeshop - Religious baker refuses to bake cake for same sex marriages\nCourt finds animus in anti-discrimination commissioner's statement", "tags": ["Neutrality"]}, {"topic": "14A Outline", "question": "General Applicability", "answer": "Fulton v. City of Philadelphia - creating a policy to give exceptions for foster families being same sex (in opposition to Catholic Social Services contracted to help the gov do this) renders policy unneutral.\nLaws that burden religion and give any discretion to government officials must meet strict scrutiny\nHosanna Tabor Evangelical Lutheran Church v.. EEOC and Our Lady of Guadalupe School - firing a teacher with disability falls into ministerial exception to federal anti-discrimination law\nReligious institutions are exempt from anti-discrimination employment law for missionaries and teachers\nMinisterial exception: State cannot interfere with “an internal church decision that affects the faith and mission of the church itself”\nRoman Catholic Diocese of Brooklyn v. Cuomo - religious institutions deemed non-essential facilities and were limited from taking part in religious services during covid\nRegulating a religious institution differently than a secular institution fails neutrality and general applicability\nTandon v. Newsom - Covid restrictions limiting at-home meetings to attendance by persons from no more than three households, Tandon sought to meet to exercise religion\nGovernment regulations are not neutral and generally applicable whenever they treat any comparable secular activity more favorably than religious exercise\n[t]he constitutional right to free exercise of religion is a right to be treated like the most favored analogous secular conduct\nCourts must look to unregulated secular activities that implicate the same interest\nEstablishment Clause: asks whether the challenged gov action has the purpose or effect of endorsing religion.\nSanta Fe Independent School District v. Doe - pregame Christian invocations cannot be regarded as private speech as they are authorized by the government and take place on government property at government-sponsored, school-related events.\nKennedy v. Bremerton - football coach kneeled to pray during football games and students voluntarily joined in.\nEstablishment clause must be interpreted by reference to historical practices and understanding\nThe line that courts and government must draw between the permissible and impermissible has to accord with history and faithfully reflect the understanding of the founding fathers", "tags": ["General Applicability"]}, {"topic": "14A Outline", "question": "Free exercise analysis", "answer": "State may not prohibit an individual from “engaging in a personal religious observance”\n“Forbidding Mr. Kennedy’s brief prayer” was “neither neutral nor generally applicable”", "tags": ["Free exercise analysis"]}, {"topic": "14A Outline", "question": "PRE BREMERTON RULES THAT ARE STILL GOOD LAW", "answer": "State cannot coerce religious participation/observances\nState cannot directly benefit / explicitly endorse religious practice\nTrinity Lutheran - funding program for playground resurfacing excludes religious orgs\nState cannot impose special disabilities on the basis of religion views/status\nHere they denied a generally available benefit solely on account of religious identity\nExcluding religious orgs from otherwise neutral and secular aid program IS a Free exercise violation\nNon-neutral\nCarson v. Makin - Maine excludes religious schools from tax\nIf the government provides aid to private secular schools → constitutionally required to make aid available to religious institutions as well\nAllegheny County v. ACLU - creche (nativity scene) and other religious symbols in courthouses violate Establishment because endorsement, though holiday symbols do not\nEndorsement: promoting religion or communicating that a particular religion or religious belief is favored or preferred.\nthe relevant question is whether the display is such that reasonable followers of the religion being showcased are likely to perceive the display as an endorsement of their religious choices, and reasonable non followers of the religion are likely to perceive the display as disapproval of their religious choices.\nGovernment discrimination among religions must meet strict scrutiny\nGovernment preference for one religious sect / tradition over another → (Larson, Kiryas Joel)", "tags": ["PRE BREMERTON RULES THAT ARE STILL GOOD LAW"]}, {"topic": "14A Outline", "question": "Expression Toolkit", "answer": "1st Amendment Intermediate Scrutiny: intermediate scrutiny + intermediate tailoring\nIntermediate Scrutiny: the government must show that its law \"directly advances\" a \"substantial\" governmental interest and is narrowly tailored—that is, \"not more extensive than necessary\"—to serve that interest.\"\nIntermediate tailoring: Law \"need not be the least restrictive or least intrusive means\" of advancing the government's Interest. But the state “may not regulate expression in such a manner that a substantial portion of the burden on speech does not serve to advance its goals.\n\nStrict scrutiny: the same. The government must prove that its law is narrowly tailored to advance a compelling governmental interest and that the law is the least restrictive means of serving that interest.\nContent Based vs Content Neutral\nA regulation is content neutral if it applies to all speech regardless of message\nOften Time, Place, and Manner (sound level, etc) restrictions\nGovernment has power to regulate conduct of speech, not content", "tags": ["Expression Toolkit"]}, {"topic": "14A Outline", "question": "A regulation of speech is facially content based if it", "answer": "Targets speech based on its communicative content\nApplies to particular speech because of the topic discussed or message expressed", "tags": ["A regulation of speech is facially content based if it"]}, {"topic": "14A Outline", "question": "Two types of content-based regulation", "answer": "Subject matter (topic)", "tags": ["Two types of content-based regulation"]}, {"topic": "14A Outline", "question": "Viewpoint", "answer": "“If there is evidence that an impermissible purpose or justification underpins a facially content-neutral restriction, for instance, that restriction may be content based.”\nCity of Austin - on premise v off premise signage\nContent based restrictions generally must meet strict scrutiny\nContent neutral restrictions generally must meet intermediate scrutiny\nMatal v. Tam (wanted to call his band The Slants): giving offensive is a viewpoint\nSpeech may not be banned on the ground that it expresses ideas that offend\nNew York Times v. Sullivan\n1st Am embodies a “profound national commitment to the principle that debate on public issues should be uninhibited, robust, and wide-open”\nNational Rifle Association of America v. Vullo\n“at the heart of the First Amendment” the principle that “viewpoint discrimination is uniquely harmful to a free and democratic society.”\nCity of Renton v. Playtime Theaters - doesn’t ban adult theaters but zones them away from schools, churches, etc building of the sort.\nOrdinance is content neutral because it is aimed not at the content of films shown at “adult motion-picture theaters” but rather at the secondary effects of adult theaters on the surrounding community.\nIf the \"predominate concerns\" of law regulating expression are negative secondary effects → law is treated as a content neutral Time Place and Manner regulation.", "tags": ["Viewpoint"]}, {"topic": "14A Outline", "question": "Vagueness", "answer": "Unconstitutionally vague: a “person of common intelligence” cannot tell what type of speech is being prohibited\n1st amendment concern: vague laws will have a chilling effect on protected expression\n“[u]ncertain meanings inevitably lead citizens to steer far wider of the unlawful zone . . . than if the boundaries of the forbidden areas were clearly marked.”\nWhen is a law too vague?\nNo clear standard, make any logical argument.\nCoates v. City of Cincinnati - ordinance made it a criminal offense for three or more people to assemble on a city sidewalk and “conduct themselves in a manner annoying to persons passing by.” is unconstitutionally vague and impermissibly infringes upon the constitutional right to free assembly.", "tags": ["Vagueness"]}, {"topic": "14A Outline", "question": "Overbreadth", "answer": "Regulates substantially more speech than the Constitution allows\nChilling effect: “persons whose expression is constitutionally protected . . . refrain from exercising their rights for fear of  . . . sanctions by a statute susceptible of application to protected expression.”\nOverbreadth must be substantial and real, relative to “legitimate sweep”\nSchad v. Borough of Mount Ephraim\nMount Ephraim’s commercial zoning ordinance contained an exhaustive list of permissible commercial uses and did not include live entertainment.\nLive entertainment, including nude dancing in your adult bookstore, is protected by the First Amendment of the Constitution.", "tags": ["Overbreadth"]}, {"topic": "14A Outline", "question": "Prior Restraint", "answer": "An administrative system or judicial order that prevents speech from occurring\nTest: “Heavy Presumption against” (effectively strict scrutiny)", "tags": ["Prior Restraint"]}, {"topic": "14A Outline", "question": "If judicial order", "answer": "Court orders forbidding speech counts as prior restraint\nNear v. Minnesota\na public nuisance law, which a county attorney relied on to bring a suit seeking to enjoin the publication of a news article that the county attorney alleged constituted a “malicious, scandalous and defamatory newspaper, magazine or other periodical” (the article alleged that the chief of police held illicit relations with gangsters) under the public nuisance law was an unconstitutional prior restraint.\npublic officers—”whose character and conduct remain open to debate and free discussion in the press”—must rely on libel laws to redress false accusations made by the media rather than attempting to restrain publication altogether.", "tags": ["If judicial order"]}, {"topic": "14A Outline", "question": "EXCEPTIONS", "answer": "to protect national security (NYT v. US)\nSpeech must inevitably, directly or immediately imperil the safety of transport already at sea\n(extremely narrow exception) The Supreme Court held that publication of the “Pentagon Papers”—documents containing classified information regarding the Vietnam War—in an article by the New York Times could not be enjoined by the U.S. government even if national security is potentially threatened. New York Times Co. v. United States\nTo ensure a fair trial\nGag orders on the media (also very narrow exception)\nMust show\nProof that publicity prevents fair trial\nProof that all alternatives will fail\nProof that a gag order would work\nNebraska Press Assoc. V. Stuart - gag order declared invalid\nwhile trial judge’s determination that media coverage would likely unfairly prejudice the defendant was reasonable, there is no evidence that less drastic steps could not have also mitigated that prejudice.\nAdministrative licensing systems: (e.g. requiring permits for expressive activity)", "tags": ["EXCEPTIONS"]}, {"topic": "14A Outline", "question": "State needs to show", "answer": "An important reason for licensing (e.g. ensuring public safety)\nClear criteria leaving almost no discretion to authority\nProcedural protections (e.g.prompt decision-making, adversarial hearings and judicial review.)\nForum Analysis: where is the expressive activity taking place.\nPublic Forum: For public forums, content-based regulations → Strict scrutiny. Content neutral regulations → 1st Am intermediate scrutiny.", "tags": ["State needs to show"]}, {"topic": "14A Outline", "question": "Traditional Public Forums", "answer": "Traditionally open to 1st A activity", "tags": ["Traditional Public Forums"]}, {"topic": "14A Outline", "question": "Designated Public Forums", "answer": "Government is not required but has opened space to 1st A activity)", "tags": ["Designated Public Forums"]}, {"topic": "14A Outline", "question": "Limited Public Forum", "answer": "Space opened to 1st A activity\nBUT can be limited to certain groups or topics\nRegulations on expressive activity are permissible if they are", "tags": ["Limited Public Forum"]}, {"topic": "14A Outline", "question": "Reasonable", "answer": "Viewpoint neutral\nLamb’s Chapel - school districts may not allow private organizations to use school facilities after hours while denying access to religious groups.\nAllowing the religious group to screen this film would not be seen as a school endorsement of a particular religion, “and any benefit to religion or to the Church would have been no more than incidental.\nNon public Forums\nPlaces where government can and does exclude almost all speech\nRegulations on expressive activity are permissible if they are", "tags": ["Reasonable"]}, {"topic": "14A Outline", "question": "Reasonable", "answer": "Viewpoint neutral\nLess protected, or not protected, speech: Incitement, True threats, Obscenity, Fighting Words", "tags": ["Reasonable"]}, {"topic": "14A Outline", "question": "Incitement", "answer": "Brandenburg v. Ohio - leader of KKK arrested after burning a cross and speaking negatively about minorities. Conviction reversed, since law was overinclusive and did not distinguish between mere advocacy and actual incitement of imminent lawless action.", "tags": ["Incitement"]}, {"topic": "14A Outline", "question": "Test: Harm caused by the speech must be", "answer": "Imminent: without significant delay\nIntended: evidence needed to prove that it was intentional", "tags": ["Test: Harm caused by the speech must be"]}, {"topic": "14A Outline", "question": "Likely", "answer": "“Material Support” exception to Incitement\nHolder v. Humanitarian Law Project - federal law prohibited the giving of “material support or resources” to certain foreign organizations designated by the secretary of state as engaging in terrorist activities. Law does not suppress ideas or opinions but prohibits “material support.” Provision of “material support” can be in the form of money, arms, supplies, and even training and education through verbal instruction, which constitutes communicating a “specific skill” or some “specialized knowledge.”", "tags": ["Likely"]}, {"topic": "14A Outline", "question": "Fighting Words", "answer": "“Words that, by their very utterance, inflict injury or tend to incite an immediate\nbreach of the peace”\nThey must be directed at a specific person (Cohen - “Fuck the Draft.” jacket)\nThey cannot be vague or overbroad\nThey cannot restrict political speech\nThey must be content neutral", "tags": ["Fighting Words"]}, {"topic": "14A Outline", "question": "True Threats", "answer": "expression directed to a person or group of persons with the intent of placing the victim in fear of bodily harm or death.\n\nCounterman - stalking and sending Facebook messages to a musician. The key consideration is what the statement conveys, not what the speaker intends. A statement may objectively be determined to be a true threat if a reasonable person would perceive the statement as threatening unlawful violence. But, to counter the chilling effect, first must pass subjective standard →\nIndividual must have consciously disregarded substantial risk of inflicting serious harm.\n\nVirginia v. Black - KKK burned cross at end of rally. Provision does not distinguish between cross burning with the intent to intimidate and cross burning without the intent to intimidate. Thus, the statute is unconstitutional on its face.\nState cannot presume intent from cross burning", "tags": ["True Threats"]}];
+
+const FLOW_TREES = {"gateway": {"title": "Gateway: state action + which amendment", "start": "g0", "nodes": {"g0": {"prompt": "Is there state action (by a state/local actor, or private actor treated as state)?", "choices": [{"label": "Yes", "next": "g1", "explain": "Good. Constitutional constraints usually require state action."}, {"label": "No / uncertain", "next": "g0_no", "explain": "If there’s no state action, most constitutional claims fail (exceptions are narrow)."}]}, "g0_no": {"prompt": "If no state action, the EP/SDP claim is usually…", "choices": [{"label": "Dismissed / fails", "next": "g_end", "explain": "Right. Without state action, you’re typically out."}, {"label": "Still strict scrutiny", "next": "g_end", "explain": "No. Scrutiny comes after state action + protected interest."}]}, "g1": {"prompt": "Is the challenged action federal or state?", "choices": [{"label": "State action", "next": "g2", "explain": "State action triggers 14A. Many BOR rights apply to states via incorporation."}, {"label": "Federal action", "next": "g2f", "explain": "Federal actions typically run through the 5A Due Process Clause (and EP via reverse incorporation)."}]}, "g2f": {"prompt": "For federal action, which Due Process Clause is the usual starting point?", "choices": [{"label": "5th Amendment Due Process", "next": "g_end", "explain": "Yes."}, {"label": "14th Amendment Due Process", "next": "g_end", "explain": "No. 14A DP constrains states."}]}, "g2": {"prompt": "Next step after identifying state action?", "choices": [{"label": "Identify the liberty/equality interest and doctrinal lane", "next": "g_end", "explain": "Right. Pick SDP vs EP vs incorporation before scrutiny."}, {"label": "Apply strict scrutiny immediately", "next": "g_end", "explain": "No."}]}, "g_end": {"prompt": "Done. Hit Next to try another drill.", "choices": [{"label": "Finish", "next": null, "explain": ""}]}}}, "sdp": {"title": "Substantive Due Process: levels of review", "start": "s0", "nodes": {"s0": {"prompt": "Is a fundamental right (FR) implicated?", "choices": [{"label": "Yes, FR", "next": "s1", "explain": "Good. Now ask whether the interference is direct/substantial."}, {"label": "No, not an FR", "next": "s_rb", "explain": "Then you’re usually in rational basis territory."}]}, "s_rb": {"prompt": "If no FR, what test applies?", "choices": [{"label": "Rational basis: rationally related to legitimate purpose", "next": "s_end", "explain": "Yes. Challenger has the burden; very deferential."}, {"label": "Strict scrutiny", "next": "s_end", "explain": "No."}]}, "s1": {"prompt": "Has the FR been infringed directly and substantially?", "choices": [{"label": "Yes, direct + substantial", "next": "s_ss", "explain": "Then apply strict scrutiny."}, {"label": "No, indirect / not substantial", "next": "s_rb2", "explain": "Then courts often apply rational basis (or something close to it)."}]}, "s_rb2": {"prompt": "If the burden is not direct/substantial, review is typically…", "choices": [{"label": "Rational basis (or similar)", "next": "s_end", "explain": "Yes."}, {"label": "Strict scrutiny automatically", "next": "s_end", "explain": "No."}]}, "s_ss": {"prompt": "Strict scrutiny requires the government to show…", "choices": [{"label": "Necessary to achieve a compelling interest (narrow tailoring)", "next": "s_end", "explain": "Yes."}, {"label": "Substantially related to an important interest", "next": "s_end", "explain": "That’s intermediate scrutiny."}]}, "s_end": {"prompt": "Done. Hit Next to try another drill.", "choices": [{"label": "Finish", "next": null, "explain": ""}]}}}, "ep": {"title": "Equal Protection: classification, intent, and scrutiny", "start": "e0", "nodes": {"e0": {"prompt": "Is there state action?", "choices": [{"label": "Yes", "next": "e1", "explain": "Good. EP Clause constrains states."}, {"label": "No / uncertain", "next": "e0_no", "explain": "If no state action, EP claim usually fails."}]}, "e0_no": {"prompt": "Without state action, EP claim is usually…", "choices": [{"label": "Dismissed / fails", "next": "e_end", "explain": "Right."}, {"label": "Strict scrutiny anyway", "next": "e_end", "explain": "No."}]}, "e1": {"prompt": "Is there a facial classification?", "choices": [{"label": "Yes, facial", "next": "e2", "explain": "Then classify and select scrutiny."}, {"label": "No, facially neutral", "next": "e3", "explain": "Then you need discriminatory purpose (impact alone usually isn’t enough)."}]}, "e3": {"prompt": "For a facially neutral law, is disparate impact alone enough?", "choices": [{"label": "No, need discriminatory intent/purpose too", "next": "e4", "explain": "Correct (Arlington Heights style)."}, {"label": "Yes, impact alone triggers strict scrutiny", "next": "e4", "explain": "No."}]}, "e4": {"prompt": "Do you have evidence of discriminatory intent?", "choices": [{"label": "Yes", "next": "e2", "explain": "Treat it like purposeful discrimination and pick scrutiny based on the classification."}, {"label": "No / weak", "next": "e_rb", "explain": "Default is rational basis (but animus can fail RB)."}]}, "e2": {"prompt": "What kind of classification is it?", "choices": [{"label": "Race / national origin", "next": "e_ss", "explain": "Suspect classification → strict scrutiny."}, {"label": "Sex", "next": "e_is", "explain": "Quasi-suspect → intermediate scrutiny."}, {"label": "Non-suspect (age, wealth, etc.)", "next": "e_rb", "explain": "Usually rational basis."}, {"label": "Alienage (varies)", "next": "e_al", "explain": "Often strict scrutiny for states, with carve-outs (political function, federal plenary power)."}]}, "e_al": {"prompt": "Alienage: safest exam default is…", "choices": [{"label": "State alienage classifications often get strict scrutiny, but political-function exceptions exist", "next": "e_end", "explain": "Good default framing."}, {"label": "Always rational basis", "next": "e_end", "explain": "Not generally."}]}, "e_ss": {"prompt": "Strict scrutiny requires:", "choices": [{"label": "Narrowly tailored to a compelling interest", "next": "e_end", "explain": "Yes."}, {"label": "Rationally related to a legitimate interest", "next": "e_end", "explain": "That’s RB."}]}, "e_is": {"prompt": "Intermediate scrutiny requires:", "choices": [{"label": "Substantially related to an important interest", "next": "e_end", "explain": "Yes."}, {"label": "Necessary to achieve a compelling interest", "next": "e_end", "explain": "That’s strict scrutiny."}]}, "e_rb": {"prompt": "Rational basis requires:", "choices": [{"label": "Rationally related to a legitimate interest", "next": "e_end", "explain": "Yes. Challenger burden; deferential."}, {"label": "Substantially related to an important interest", "next": "e_end", "explain": "That’s intermediate."}]}, "e_end": {"prompt": "Done. Hit Next to try another drill.", "choices": [{"label": "Finish", "next": null, "explain": ""}]}}}};
+
+const $ = (id) => document.getElementById(id);
+
+const datasetEl = $("dataset");
+const modeEl = $("mode");
+const sectionEl = $("section");
+const qtypeEl = $("qtype");
+const qtypePill = $("qtypePill");
+const outlineStudyPill = $("outlineStudyPill");
+const outlineModeEl = $("outlineMode");
+const searchEl = $("search");
+
+const cardTitle = $("cardTitle");
+const questionEl = $("question");
+const answersEl = $("answers");
+const revealEl = $("reveal");
+const scoreEl = $("score");
+
+const poolCountEl = $("poolCount");
+const sectionTagEl = $("sectionTag");
+const modeTagEl = $("modeTag");
+const metaLineEl = $("metaLine");
+const contextTextEl = $("contextText");
+const cardLabelEl = $("cardLabel");
+
+const btnReveal = $("btnReveal");
+const btnNext = $("btnNext");
+const btnRestart = $("btnRestart");
+const btnResetStats = $("btnResetStats");
+const toastEl = $("toast");
+
+function toast(msg) {
+  toastEl.textContent = msg;
+  toastEl.classList.add("show");
+  clearTimeout(toastEl._t);
+  toastEl._t = setTimeout(() => toastEl.classList.remove("show"), 1200);
+}
+
+function uniq(arr) { return Array.from(new Set(arr)); }
+function clean(s) { return (s || "").toString().trim(); }
+function normalize(s) { return clean(s).toLowerCase(); }
+
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+function storedStatsKey() { return "conlaw_study_trainer_stats_v1"; }
+function loadStats() { try { return JSON.parse(localStorage.getItem(storedStatsKey())) || {}; } catch { return {}; } }
+function saveStats(s) { localStorage.setItem(storedStatsKey(), JSON.stringify(s)); }
+let stats = loadStats();
+
+function keyForItem(item) {
+  const ds = datasetEl.value;
+  return ds + "::" + (item.name || item.question || "item");
+}
+function getStat(item) {
+  const k = keyForItem(item);
+  const s = stats[k] || { seen:0, correct:0, wrong:0, streak:0 };
+  stats[k] = s;
+  return s;
+}
+function weight(item) {
+  const s = getStat(item);
+  const missBoost = 1 + Math.min(3, s.wrong * 0.35);
+  const streakPenalty = 1 / (1 + Math.min(6, s.streak) * 0.35);
+  return missBoost * streakPenalty;
+}
+function weightedPick(pool) {
+  const w = pool.map(weight);
+  const total = w.reduce((a,b)=>a+b,0);
+  let r = Math.random() * total;
+  for (let i=0;i<pool.length;i++) {
+    r -= w[i];
+    if (r <= 0) return pool[i];
+  }
+  return pool[pool.length-1];
+}
+
+function escapeHtml(str) {
+  return (str ?? "").toString()
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+function buildSectionOptions() {
+  const ds = datasetEl.value;
+  sectionEl.innerHTML = "";
+  const allOpt = document.createElement("option");
+  allOpt.value = "__all__";
+  allOpt.textContent = "All";
+  sectionEl.appendChild(allOpt);
+
+  if (ds === "cases") {
+    const sections = uniq(CASES.map(c => clean(c.section)).filter(Boolean)).sort((a,b)=>a.localeCompare(b));
+    sections.forEach(s => {
+      const opt = document.createElement("option");
+      opt.value = s;
+      opt.textContent = s;
+      sectionEl.appendChild(opt);
+    });
+  } else {
+    const tags = uniq(OUTLINE.flatMap(o => o.tags || [])).filter(Boolean).sort((a,b)=>a.localeCompare(b));
+    tags.forEach(t => {
+      const opt = document.createElement("option");
+      opt.value = t;
+      opt.textContent = t;
+      sectionEl.appendChild(opt);
+    });
+  }
+}
+
+function filterPool() {
+  const ds = datasetEl.value;
+  const sec = sectionEl.value;
+  const q = normalize(searchEl.value);
+
+  if (ds === "cases") {
+    return CASES.filter(c => {
+      if (sec !== "__all__" && clean(c.section) !== sec) return false;
+      if (!q) return true;
+      const hay = normalize([c.name, c.section, c.summary, c.rule, c.doctrine, c.notes, c.year].join(" "));
+      return hay.includes(q);
+    });
+  }
+
+  return OUTLINE.filter(o => {
+    if (sec !== "__all__" && !(o.tags || []).includes(sec)) return false;
+    if (!q) return true;
+    const hay = normalize([o.question, o.answer, (o.tags||[]).join(" ")].join(" "));
+    return hay.includes(q);
+  });
+}
+
+function nonEmptyValues(key, pool) {
+  return pool.map(c => clean(c[key])).filter(v => v && v !== "nan");
+}
+
+function qTypesAvailable(pool) {
+  const possible = ["rule","doctrine","year","summary"];
+  return possible.filter(t => nonEmptyValues(t, pool).length >= 4);
+}
+
+function pickQType(pool) {
+  const chosen = qtypeEl.value;
+  if (chosen !== "mixed") return chosen;
+  const avail = qTypesAvailable(pool);
+  const weighted = [];
+  avail.forEach(t => {
+    const w = (t === "rule" ? 4 : t === "summary" ? 3 : t === "doctrine" ? 2 : 2);
+    for (let i=0;i<w;i++) weighted.push(t);
+  });
+  return pick(weighted.length ? weighted : ["rule"]);
+}
+
+function makeQuestion(pool) {
+  const ds = datasetEl.value;
+  const item = weightedPick(pool);
+
+  if (ds === "cases") {
+    const type = pickQType(pool);
+    const correct = clean(item[type]) || "(blank)";
+    let values = uniq(nonEmptyValues(type, pool)).filter(v => v !== correct);
+    values = shuffle(values).slice(0,3);
+    const choices = shuffle([correct, ...values]);
+
+    let prompt = "";
+    if (type === "rule") prompt = "Which rule / holding best matches this case?";
+    if (type === "doctrine") prompt = "Which doctrine / bucket is this case usually taught under?";
+    if (type === "year") prompt = "What year was this case decided?";
+    if (type === "summary") prompt = "Which summary best matches this case?";
+
+    return { ds, item, type, prompt, choices, answer: correct };
+  }
+
+  // outline dataset
+  const correct = clean(item.answer) || "(blank)";
+  // Use other answers as distractors
+  let values = uniq(pool.map(p => clean(p.answer)).filter(Boolean)).filter(v => v !== correct);
+  values = shuffle(values).slice(0,3);
+  const choices = shuffle([correct, ...values]);
+  const prompt = "Which answer best matches this prompt?";
+  return { ds, item, type: "outline", prompt, choices, answer: correct };
+}
+
+
+// Outline flow drill state
+let flow = { treeKey: "gateway", nodeId: null, step: 0, lastExplain: "" };
+
+function pickFlowTreeKey() {
+  const keys = ["gateway","sdp","ep"];
+  return keys[Math.floor(Math.random() * keys.length)];
+}
+
+function startFlow() {
+  flow.treeKey = pickFlowTreeKey();
+  const tree = FLOW_TREES[flow.treeKey];
+  flow.nodeId = tree.start;
+  flow.step = 0;
+  flow.lastExplain = "";
+}
+
+function currentFlowNode() {
+  const tree = FLOW_TREES[flow.treeKey];
+  return tree.nodes[flow.nodeId];
+}
+
+let pool = [];
+let current = null;
+let revealed = false;
+let answered = false;
+let session = { seen:0, correct:0, wrong:0 };
+
+function updateHeaderTags() {
+  poolCountEl.textContent = `${pool.length}`;
+  sectionTagEl.textContent = (sectionEl.value === "__all__" ? "All" : sectionEl.value);
+  modeTagEl.textContent = modeEl.value;
+}
+
+function updateSidebar(item) {
+  const ds = datasetEl.value;
+
+  if (ds === "cases") {
+    const meta = [];
+    if (clean(item.section)) meta.push(`<span class="tag">${escapeHtml(item.section)}</span>`);
+    if (clean(item.doctrine)) meta.push(`<span class="tag">${escapeHtml(item.doctrine)}</span>`);
+    if (clean(item.year)) meta.push(`<span class="tag">${escapeHtml(item.year)}</span>`);
+    metaLineEl.innerHTML = meta.join(" ");
+
+    const bits = [];
+    if (clean(item.summary)) bits.push(`<b>Summary:</b> ${escapeHtml(item.summary)}`);
+    if (clean(item.rule)) bits.push(`<b>Rule:</b> ${escapeHtml(item.rule)}`);
+    if (clean(item.notes)) bits.push(`<b>Notes:</b> ${escapeHtml(item.notes).replaceAll("\n","<br/>")}`);
+    contextTextEl.innerHTML = bits.length ? bits.join("<br/><br/>") : `<span class="muted">(No details for this case in the sheet yet.)</span>`;
+  } else {
+    metaLineEl.innerHTML = (item.tags || []).slice(0,4).map(t => `<span class="tag">${escapeHtml(t)}</span>`).join(" ");
+    contextTextEl.textContent = clean(item.answer).slice(0,700) + (clean(item.answer).length>700 ? "…" : "");
+  }
+}
+
+function updateScore() {
+  scoreEl.textContent = `Session: ${session.correct}✓ ${session.wrong}✗ • ${session.seen} seen`;
+}
+
+function reveal() {
+  if (!current) return;
+  const ds = datasetEl.value;
+  revealed = true;
+  revealEl.style.display = "block";
+
+  if (ds === "cases") {
+    const c = current.item;
+    const type = current.type;
+    const parts = [];
+    if (type === "summary") parts.push(`<b>Summary:</b> ${escapeHtml(clean(c.summary) || "(blank)")}`);
+    if (type === "rule") parts.push(`<b>Rule:</b> ${escapeHtml(clean(c.rule) || "(blank)")}`);
+    if (type === "doctrine") parts.push(`<b>Doctrine:</b> ${escapeHtml(clean(c.doctrine) || "(blank)")}`);
+    if (type === "year") parts.push(`<b>Year:</b> ${escapeHtml(clean(c.year) || "(blank)")}`);
+    const extras = [];
+    if (type !== "summary" && clean(c.summary)) extras.push(`<b>Summary:</b> ${escapeHtml(c.summary)}`);
+    if (type !== "rule" && clean(c.rule)) extras.push(`<b>Rule:</b> ${escapeHtml(c.rule)}`);
+    if (type !== "doctrine" && clean(c.doctrine)) extras.push(`<b>Doctrine:</b> ${escapeHtml(c.doctrine)}`);
+    if (type !== "year" && clean(c.year)) extras.push(`<b>Year:</b> ${escapeHtml(c.year)}`);
+    if (clean(c.notes)) extras.push(`<b>Notes:</b> ${escapeHtml(c.notes).replaceAll("\n","<br/>")}`);
+    revealEl.innerHTML = parts.join("<br/>") + (extras.length ? "<div class='hr'></div>" + extras.join("<br/>") : "");
+    return;
+  }
+
+  // outline
+  if (outlineModeEl.value === "flow") {
+    const title = FLOW_TREES[flow.treeKey].title;
+    const exp = flow.lastExplain || "Use the choices to move through the steps. Reveal shows why your last choice was a good move.";
+    revealEl.innerHTML = `<b>${escapeHtml(title)}</b><div class='hr'></div>${escapeHtml(exp).replaceAll("\\n","<br/>")}`;
+  } else {
+    revealEl.textContent = clean(current.item.answer) || "(blank)";
+  }
+}
+
+function markOutcome(isCorrect) {
+  const s = getStat(current.item);
+  s.seen += 1;
+  if (isCorrect) {
+    s.correct += 1;
+    s.streak = Math.max(0, s.streak) + 1;
+    session.correct += 1;
+  } else {
+    s.wrong += 1;
+    s.streak = Math.min(0, s.streak) - 1;
+    session.wrong += 1;
+  }
+  session.seen += 1;
+  saveStats(stats);
+  updateScore();
+}
+
+function handleChoice(btn, choice) {
+  if (answered) return;
+  // Flow drill: advance along the tree (no right/wrong grading here)
+  if (datasetEl.value === "outline" && outlineModeEl.value === "flow") {
+    answered = true;
+    const node = currentFlowNode();
+    const ch = node.choices.find(c => c.label === choice) || node.choices[0];
+    flow.lastExplain = ch.explain || "";
+    if (ch.next === null) {
+      // finished
+      reveal();
+      // count as seen for session
+      session.seen += 1;
+      updateScore();
+      return;
+    }
+    flow.nodeId = ch.next;
+    flow.step += 1;
+    reveal();
+    // immediately show next prompt
+    answered = false;
+    render();
+    return;
+  }
+  answered = true;
+
+  const correct = (choice === current.answer);
+  const buttons = Array.from(document.querySelectorAll(".choice"));
+  buttons.forEach(b => {
+    const text = b.textContent.replace(/^\s*\d+\.\s*/, "");
+    if (text === current.answer) b.classList.add("correct");
+  });
+  if (!correct) btn.classList.add("wrong");
+  else btn.classList.add("correct");
+
+  reveal();
+  markOutcome(correct);
+}
+
+function next() {
+  if (datasetEl.value === "outline" && outlineModeEl.value === "flow") {
+    startFlow();
+    current = null;
+    render();
+    return;
+  }
+  current = makeQuestion(pool);
+  render();
+}
+
+function render() {
+  pool = filterPool();
+  updateHeaderTags();
+
+  // show/hide qtype pill depending on dataset
+  if (datasetEl.value === "cases") {
+    qtypePill.style.display = "flex";
+    outlineStudyPill.style.display = "none";
+  } else {
+    qtypePill.style.display = "none";
+    outlineStudyPill.style.display = "flex";
+  }
+
+  if (pool.length < 4) {
+    cardTitle.textContent = "Not enough items in this filter";
+    questionEl.textContent = "Broaden the focus filter or clear the search so there are at least 4 items to build multiple-choice questions.";
+    answersEl.innerHTML = "";
+    revealEl.style.display = "none";
+    metaLineEl.innerHTML = "";
+    contextTextEl.innerHTML = "";
+    scoreEl.textContent = "";
+    return;
+  }
+
+  if (!current && !(datasetEl.value === "outline" && outlineModeEl.value === "flow")) current = makeQuestion(pool);
+
+  const ds = datasetEl.value;
+  const mode = modeEl.value;
+
+  cardLabelEl.textContent = (mode === "quiz" ? "Question" : "Flashcard");
+
+  if (ds === "cases") {
+    cardTitle.textContent = current.item.name;
+    updateSidebar(current.item);
+
+    if (mode === "quiz") {
+      questionEl.textContent = current.prompt;
+      answersEl.innerHTML = "";
+      revealed = false; answered = false; revealEl.style.display = "none";
+
+      current.choices.forEach((choice, idx) => {
+        const btn = document.createElement("button");
+        btn.className = "choice";
+        btn.innerHTML = `<span class="muted">${idx+1}.</span> ${escapeHtml(choice)}`;
+        btn.addEventListener("click", () => handleChoice(btn, choice));
+        answersEl.appendChild(btn);
+      });
+    } else {
+      // flashcard
+      let front = "";
+      if (current.type === "rule") front = "State the rule / holding.";
+      if (current.type === "doctrine") front = "Name the doctrine / bucket.";
+      if (current.type === "year") front = "Recall the year.";
+      if (current.type === "summary") front = "Give the one-line summary.";
+      questionEl.textContent = front;
+      answersEl.innerHTML = "";
+      revealed = false; answered = false; revealEl.style.display = "none"; revealEl.innerHTML = "";
+    }
+
+  } else {
+    // OUTLINE dataset
+    if (outlineModeEl.value === "flow") {
+      if (!flow.nodeId) startFlow();
+      const tree = FLOW_TREES[flow.treeKey];
+      const node = currentFlowNode();
+
+      cardTitle.textContent = tree.title;
+      metaLineEl.innerHTML = `<span class="tag">Outline</span><span class="tag">Flow drill</span><span class="tag">${escapeHtml(flow.treeKey.toUpperCase())}</span><span class="tag">Step ${flow.step+1}</span>`;
+      contextTextEl.textContent = "Pick the best next step. Use Reveal to see why your last choice worked (or didn’t).";
+
+      questionEl.textContent = node.prompt;
+      answersEl.innerHTML = "";
+      revealed = false; answered = false; revealEl.style.display = "none";
+
+      node.choices.forEach((c, idx) => {
+        const btn = document.createElement("button");
+        btn.className = "choice";
+        btn.innerHTML = `<span class="muted">${idx+1}.</span> ${escapeHtml(c.label)}`;
+        btn.addEventListener("click", () => handleChoice(btn, c.label));
+        answersEl.appendChild(btn);
+      });
+
+    } else {
+      // Outline flashcards/quiz (existing behavior)
+      cardTitle.textContent = current.item.question;
+      updateSidebar(current.item);
+
+      if (mode === "quiz") {
+        questionEl.textContent = current.prompt;
+        answersEl.innerHTML = "";
+        revealed = false; answered = false; revealEl.style.display = "none";
+
+        current.choices.forEach((choice, idx) => {
+          const btn = document.createElement("button");
+          btn.className = "choice";
+          const short = choice.length > 160 ? choice.slice(0,160) + "…" : choice;
+          btn.innerHTML = `<span class="muted">${idx+1}.</span> ${escapeHtml(short)}`;
+          btn.addEventListener("click", () => handleChoice(btn, choice));
+          answersEl.appendChild(btn);
+        });
+      } else {
+        questionEl.textContent = "Explain this concept/test in your own words.";
+        answersEl.innerHTML = "";
+        revealed = false; answered = false; revealEl.style.display = "none"; revealEl.textContent = "";
+      }
+    }
+  }
+
+  updateScore();
+}
+
+btnReveal.addEventListener("click", () => {
+  const mode = modeEl.value;
+
+  if (mode === "quiz") { reveal(); toast("Revealed"); return; }
+
+  if (!revealed) {
+    reveal();
+    answersEl.innerHTML = `
+      <button class="choice" id="selfCorrect">I was right</button>
+      <button class="choice" id="selfWrong">I was wrong</button>
+    `;
+    $("selfCorrect").addEventListener("click", () => { markOutcome(true); next(); });
+    $("selfWrong").addEventListener("click", () => { markOutcome(false); next(); });
+  }
+});
+
+btnNext.addEventListener("click", () => next());
+
+btnRestart.addEventListener("click", () => {
+  session = { seen:0, correct:0, wrong:0 };
+  toast("Restarted session");
+  current = null;
+  render();
+});
+
+btnResetStats.addEventListener("click", () => {
+  localStorage.removeItem(storedStatsKey());
+  stats = loadStats();
+  session = { seen:0, correct:0, wrong:0 };
+  toast("Reset saved stats");
+  current = null;
+  render();
+});
+
+function onFiltersChanged() {
+  current = null;
+  if (datasetEl.value === "outline" && outlineModeEl.value === "flow") {
+    startFlow();
+  } else {
+    flow.nodeId = null;
+  }
+  render();
+}
+
+datasetEl.addEventListener("change", () => { buildSectionOptions(); onFiltersChanged(); });
+outlineModeEl.addEventListener("change", onFiltersChanged);
+modeEl.addEventListener("change", onFiltersChanged);
+sectionEl.addEventListener("change", onFiltersChanged);
+qtypeEl.addEventListener("change", onFiltersChanged);
+searchEl.addEventListener("input", () => {
+  clearTimeout(searchEl._t);
+  searchEl._t = setTimeout(onFiltersChanged, 120);
+});
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === " ") { e.preventDefault(); btnReveal.click(); }
+  if (e.key.toLowerCase() === "n") { btnNext.click(); }
+  const k = parseInt(e.key, 10);
+  if (!isNaN(k) && k >= 1 && k <= 4) {
+    const btns = Array.from(document.querySelectorAll(".choice"));
+    const b = btns[k-1];
+    if (b) b.click();
+  }
+});
+
+buildSectionOptions();
+render();
+</script>
+</body>
+</html>
